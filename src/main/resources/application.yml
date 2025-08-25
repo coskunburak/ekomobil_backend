@@ -1,7 +1,13 @@
 server:
   port: 8080
+  servlet:
+    context-path: /
 
 spring:
+  application:
+    name: ekomobil
+  jackson:
+    default-property-inclusion: non_null
   datasource:
     url: jdbc:postgresql://localhost:5433/ekomobil
     username: burakcoskun
@@ -10,16 +16,24 @@ spring:
     hibernate:
       ddl-auto: validate
     open-in-view: false
-  flyway:
-    enabled: true
-  main:
-    web-application-type: servlet
+    properties:
+      hibernate.format_sql: true
+      hibernate.jdbc.time_zone: UTC
+
 management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when_authorized
 
-app:
-  ingestion:
-    deviceKey: dev-device-key
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui
+    tags-sorter: alpha
+    operations-sorter: method
+  paths-to-match: /api/**
