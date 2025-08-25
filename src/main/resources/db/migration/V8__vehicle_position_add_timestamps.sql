@@ -1,0 +1,4 @@
+-- V8__vehicle_position_add_timestamps.sql
+ALTER TABLE vehicle_position
+  ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+  ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW();
