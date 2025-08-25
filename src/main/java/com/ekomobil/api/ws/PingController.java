@@ -1,0 +1,15 @@
+package com.ekomobil.api.ws;
+
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.stereotype.Controller;
+
+@Controller
+public class PingController {
+
+    @MessageMapping("/ping")        // client -> /app/ping
+    @SendTo("/topic/pong")          // server -> /topic/pong
+    public String ping(String body) {
+        return "pong";
+    }
+}

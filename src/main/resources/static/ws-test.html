@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>WS Test</title>
+</head>
+<body>
+<h3>WebSocket STOMP Test</h3>
+<button id="connect">Connect</button>
+<button id="send" disabled>Send /app/ping</button>
+<pre id="log"></pre>
+
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+<script>
+    let stompClient = null;
+    const log = (m) => document.getElementById('log').textContent += m + "\n";
+
+    document.getElementById('connect').onclick = () => {
+      const socket = new SockJS('/ws');
+      stompClient = Stomp.over(socket);
+      stompClient.connect({}, () => {
+        log('Connected');
+        document.getElementById('send').disabled = false;
+
+        // Sunucunun @SendTo("/topic/pong") ile yayınladığı kanal
+        stompClient.subscribe('/topic/pong', (message) => {
+          log('Received: ' + message.body);
+        });
+      }, (err) => log('Error: ' + err));
+    };
+
+    document.getElementById('send').onclick = () => {
+      // Sunucudaki @MessageMapping("/ping") eşleşmesi
+      stompClient.send('/app/ping', {}, 'hello');  // body zorunlu değil, örnek olarak "hello"
+      log('Sent /app/ping');
+    };
+</script>
+</body>
+</html>
