@@ -2,6 +2,10 @@ server:
   port: 8080
   servlet:
     context-path: /
+app:
+  jwt:
+    secret: "kK8+o4bq2R9fE5Yw3L1zQ7TnU2hV6mB9sP0rX4cZ8aD1wJ3lN5uG7yK0qR2tV4"
+    expiresInMinutes: 10080
 
 spring:
   application:
@@ -9,7 +13,7 @@ spring:
   jackson:
     default-property-inclusion: non_null
   datasource:
-    url: jdbc:postgresql://localhost:5433/ekomobil
+    url: jdbc:postgresql://localhost:5432/ekomobil
     username: burakcoskun
     password: brkcskn29
   jpa:
