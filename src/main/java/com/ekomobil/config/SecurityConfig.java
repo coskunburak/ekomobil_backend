@@ -49,6 +49,8 @@ public class SecurityConfig {
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/actuator/**", "/ws/**").permitAll()
                         // Auth uçları serbest
                         .requestMatchers("/api/v1/auth/**").permitAll()
+                        // Search endpoint serbest (GET)
+                        .requestMatchers(HttpMethod.GET, "/api/v1/search", "/api/v1/search/**").permitAll()
                         // Telemetry POST => DEVICE anahtarıyla authenticated (DeviceKeyAuthFilter set eder)
                         .requestMatchers(HttpMethod.POST, "/api/v1/telemetry").authenticated()
                         // Diğer tüm API'ler (iş ihtiyaçlarına göre daraltabilirsin)
@@ -79,7 +81,7 @@ public class SecurityConfig {
         return cfg.getAuthenticationManager();
     }
 
-    // === DeviceKey filtresi aynı kalır ===
+    //DeviceKey filtresi aynı kalır obd2 de işime yarayacak burası
     @Bean
     public DeviceKeyAuthFilter deviceKeyAuthFilter(com.ekomobil.repo.DeviceKeyRepository repo) {
         return new DeviceKeyAuthFilter(repo);
@@ -92,6 +94,8 @@ public class SecurityConfig {
         @Override
         protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
                 throws ServletException, IOException {
+
+            // Sadece /api/v1/telemetry POST taleplerinde cihaz anahtarı doğrulaması yap
             if ("POST".equalsIgnoreCase(request.getMethod())
                     && request.getRequestURI().startsWith("/api/v1/telemetry")
                     && SecurityContextHolder.getContext().getAuthentication() == null) {
@@ -112,6 +116,7 @@ public class SecurityConfig {
                     });
                 }
             }
+
             chain.doFilter(request, response);
         }
     }

@@ -15,6 +15,17 @@ public class SignupRequest
     @NotBlank @Size(min=6, max=64)
     private String password;
 
+    @NotBlank @Size(min=3, max=40)
+    private String username;
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
     public String getName() {
         return name;
     }

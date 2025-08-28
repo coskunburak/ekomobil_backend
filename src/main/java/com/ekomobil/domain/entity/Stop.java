@@ -3,7 +3,7 @@ package com.ekomobil.domain.entity;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "stops") // tablo adı tam olarak "stops" olmalı
+@Table(name = "stops")
 public class Stop {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

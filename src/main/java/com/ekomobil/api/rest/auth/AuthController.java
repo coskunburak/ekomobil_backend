@@ -8,7 +8,6 @@ import com.ekomobil.security.JwtUtil;
 import com.ekomobil.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController

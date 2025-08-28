@@ -1,9 +1,11 @@
 package com.ekomobil.error;
 
 import jakarta.validation.ConstraintViolationException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.*;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.OffsetDateTime;
 import java.util.*;
@@ -33,17 +35,29 @@ public class GlobalExceptionHandler {
         return problem(HttpStatus.BAD_REQUEST, "Validation Error", details);
     }
 
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<Map<String, Object>> handleResponseStatus(ResponseStatusException ex) {
+        return problem(ex.getStatusCode(), ex.getReason() != null ? ex.getReason() : "Error", null);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Map<String, Object>> handleConflict(DataIntegrityViolationException ex) {
+        return problem(HttpStatus.CONFLICT, "Conflict", "Duplicate key or constraint violation");
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleOther(Exception ex) {
         return problem(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Error", ex.getMessage());
     }
 
-    private ResponseEntity<Map<String, Object>> problem(HttpStatus status, String error, Object details) {
+    private ResponseEntity<Map<String, Object>> problem(HttpStatusCode status, String error, Object details) {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("timestamp", OffsetDateTime.now().toString());
         body.put("status", status.value());
         body.put("error", error);
-        body.put("details", details);
+        if (details != null) {
+            body.put("details", details);
+        }
         return ResponseEntity.status(status).body(body);
     }
 }

@@ -1,0 +1,2 @@
+ALTER TABLE users
+  ADD COLUMN IF NOT EXISTS username varchar(40) NOT NULL UNIQUE;
