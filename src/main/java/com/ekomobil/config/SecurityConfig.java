@@ -33,7 +33,6 @@ import java.util.List;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    // === HTTP güvenlik zinciri ===
     @Bean
     public SecurityFilterChain filterChain(
             HttpSecurity http,
@@ -45,15 +44,25 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // CORS preflight
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
                         // Swagger, Actuator, WS serbest
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/actuator/**", "/ws/**").permitAll()
+
                         // Auth uçları serbest
                         .requestMatchers("/api/v1/auth/**").permitAll()
+
                         // Search endpoint serbest (GET)
                         .requestMatchers(HttpMethod.GET, "/api/v1/search", "/api/v1/search/**").permitAll()
+
+                        // Map endpointleri sadece GET için serbest
+                        .requestMatchers(HttpMethod.GET, "/api/v1/map/**").permitAll()
+
                         // Telemetry POST => DEVICE anahtarıyla authenticated (DeviceKeyAuthFilter set eder)
                         .requestMatchers(HttpMethod.POST, "/api/v1/telemetry").authenticated()
-                        // Diğer tüm API'ler (iş ihtiyaçlarına göre daraltabilirsin)
+
+                        // Diğer tüm API'ler auth ister
                         .requestMatchers("/api/v1/**").authenticated()
                         .anyRequest().permitAll()
                 )
@@ -63,7 +72,6 @@ public class SecurityConfig {
                 .build();
     }
 
-    // === AuthN bean'leri ===
     @Bean
     public PasswordEncoder passwordEncoder() { return new BCryptPasswordEncoder(); }
 
@@ -83,7 +91,7 @@ public class SecurityConfig {
 
     //DeviceKey filtresi aynı kalır obd2 de işime yarayacak burası
     @Bean
-    public DeviceKeyAuthFilter deviceKeyAuthFilter(com.ekomobil.repo.DeviceKeyRepository repo) {
+    public DeviceKeyAuthFilter deviceKeyAuthFilter(DeviceKeyRepository repo) {
         return new DeviceKeyAuthFilter(repo);
     }
 
@@ -95,7 +103,6 @@ public class SecurityConfig {
         protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
                 throws ServletException, IOException {
 
-            // Sadece /api/v1/telemetry POST taleplerinde cihaz anahtarı doğrulaması yap
             if ("POST".equalsIgnoreCase(request.getMethod())
                     && request.getRequestURI().startsWith("/api/v1/telemetry")
                     && SecurityContextHolder.getContext().getAuthentication() == null) {

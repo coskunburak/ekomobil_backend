@@ -1,0 +1,4 @@
+
+ALTER TABLE route_stop
+ADD COLUMN IF NOT EXISTS order_no INT;
+

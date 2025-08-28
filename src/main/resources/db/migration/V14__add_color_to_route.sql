@@ -1,0 +1,2 @@
+ALTER TABLE route
+ADD COLUMN color VARCHAR(16);
