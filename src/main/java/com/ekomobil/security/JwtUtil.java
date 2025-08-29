@@ -5,6 +5,7 @@ import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 
@@ -17,15 +18,16 @@ public class JwtUtil {
             @Value("${app.jwt.secret}") String secret,
             @Value("${app.jwt.expiresInMinutes}") long expiresInMinutes
     ) {
-        this.key = Keys.hmacShaKeyFor(secret.getBytes());
+        this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         this.expiresMs = expiresInMinutes * 60_000L;
     }
 
     public String generate(Long userId, String email) {
         long now = System.currentTimeMillis();
         return Jwts.builder()
-                .setSubject(String.valueOf(userId))
-                .claim("email", email)
+                .setSubject(String.valueOf(userId))      // userId
+                .claim("email", email)                   // email
+                // .claim("uid", userId)                 // (opsiyonel) ek claim
                 .setIssuedAt(new Date(now))
                 .setExpiration(new Date(now + expiresMs))
                 .signWith(key, SignatureAlgorithm.HS256)
@@ -38,5 +40,10 @@ public class JwtUtil {
 
     public Long getUserId(String token) {
         return Long.valueOf(parse(token).getBody().getSubject());
+    }
+
+    public String getEmail(String token) {
+        Object e = parse(token).getBody().get("email");
+        return e == null ? null : String.valueOf(e);
     }
 }

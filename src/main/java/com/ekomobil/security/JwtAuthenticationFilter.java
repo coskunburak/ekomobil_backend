@@ -5,13 +5,15 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -30,19 +32,40 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String header = req.getHeader("Authorization");
         if (header != null && header.startsWith("Bearer ")) {
             String token = header.substring(7);
-            try {
-                Long userId = jwtUtil.getUserId(token);
-                String email = (String) jwtUtil.parse(token).getBody().get("email");
 
-                if (SecurityContextHolder.getContext().getAuthentication() == null) {
-                    UserDetails details = uds.loadUserByUsername(email);
+            try {
+                // Bu çağrılar parse sırasında imza/expire doğrular, hata atarsa anonim devam edilir
+                Long userId = jwtUtil.getUserId(token);
+                String email = jwtUtil.getEmail(token);
+
+                if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+
+                    // 1) Yetkileri edin.
+                    // - Eğer rol yönetimin yoksa sabit ROLE_USER verilebilir:
+                    //   Collection<GrantedAuthority> authorities = List.of(() -> "ROLE_USER");
+                    // - Veya mevcut DB kullanıcı yetkilerini kullan:
+                    var userDetails = uds.loadUserByUsername(email); // UserPrincipal döndürüyor
+                    Collection<? extends GrantedAuthority> authorities = userDetails.getAuthorities();
+
+                    // 2) Principal: id'yi MUTLAKA token'dan veriyoruz
+                    UserPrincipal principal = new UserPrincipal(
+                            userId,
+                            email,
+                            null,              // parolaya gerek yok
+                            authorities
+                    );
+
                     UsernamePasswordAuthenticationToken auth =
-                            new UsernamePasswordAuthenticationToken(details, null, details.getAuthorities());
+                            new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());
                     auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(req));
+
                     SecurityContextHolder.getContext().setAuthentication(auth);
                 }
-            } catch (Exception ignored) { /* invalid token -> anonymous */ }
+            } catch (Exception ignored) {
+                // invalid/expired token -> anonymous
+            }
         }
+
         chain.doFilter(req, res);
     }
 }
