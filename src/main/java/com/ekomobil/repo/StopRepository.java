@@ -6,8 +6,13 @@ import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface StopRepository extends JpaRepository<Stop, Long> {
+
+    boolean existsByCode(String code);
+
+    Optional<Stop> findByCode(String code);
 
     @Query("""
         select s from Stop s
@@ -18,13 +23,16 @@ public interface StopRepository extends JpaRepository<Stop, Long> {
                           @Param("deg") double deg);
 
     @Query("""
-        select s from Stop s
-        where lower(coalesce(s.name, '')) like lower(concat('%', :q, '%'))
-           or lower(coalesce(s.description, '')) like lower(concat('%', :q, '%'))
+    select s from Stop s
+    where lower(coalesce(s.name, '')) like lower(concat('%', :q, '%'))
+       or lower(coalesce(s.description, '')) like lower(concat('%', :q, '%'))
+       or lower(coalesce(s.code, '')) = lower(:q)
     """)
     List<Stop> search(@Param("q") String q, Pageable pageable);
 
+
 }
+
 
 /*
 buna bir bakacağım

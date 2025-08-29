@@ -34,24 +34,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String token = header.substring(7);
 
             try {
-                // Bu çağrılar parse sırasında imza/expire doğrular, hata atarsa anonim devam edilir
                 Long userId = jwtUtil.getUserId(token);
                 String email = jwtUtil.getEmail(token);
 
                 if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-                    // 1) Yetkileri edin.
-                    // - Eğer rol yönetimin yoksa sabit ROLE_USER verilebilir:
-                    //   Collection<GrantedAuthority> authorities = List.of(() -> "ROLE_USER");
-                    // - Veya mevcut DB kullanıcı yetkilerini kullan:
                     var userDetails = uds.loadUserByUsername(email); // UserPrincipal döndürüyor
                     Collection<? extends GrantedAuthority> authorities = userDetails.getAuthorities();
-
-                    // 2) Principal: id'yi MUTLAKA token'dan veriyoruz
                     UserPrincipal principal = new UserPrincipal(
                             userId,
                             email,
-                            null,              // parolaya gerek yok
+                            null,
                             authorities
                     );
 
@@ -62,7 +55,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     SecurityContextHolder.getContext().setAuthentication(auth);
                 }
             } catch (Exception ignored) {
-                // invalid/expired token -> anonymous
             }
         }
 

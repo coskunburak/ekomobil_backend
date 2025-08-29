@@ -1,6 +1,7 @@
 package com.ekomobil.api.rest.publicapi;
 
 import com.ekomobil.domain.dto.CreateRouteRequest;
+import com.ekomobil.domain.dto.RouteDetailDto;
 import com.ekomobil.domain.dto.RouteDto;
 import com.ekomobil.service.RouteService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -42,4 +43,11 @@ public class RouteController {
     public void delete(@PathVariable Long id){
         service.delete(id);
     }
+    @Operation(summary = "Rota detayı (duraklar + polyline)")
+    @GetMapping("/{id}/detail")
+    public RouteDetailDto detail(@PathVariable Long id,
+                                 @RequestParam(defaultValue = "0") int direction) {
+        return service.getDetail(id, direction);
+    }
+
 }

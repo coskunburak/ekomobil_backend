@@ -26,15 +26,15 @@ public class AuthService {
 
     public AuthResponse signup(SignupRequest req) {
         if (repo.existsByEmail(req.getEmail())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already registered");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Eposta zaten kayıtlı");
         }
         if (repo.existsByUsername(req.getUsername())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Username already taken");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Kullanıcı adı zaten kayıtlı");
         }
 
         User u = new User();
         u.setName(req.getName());
-        u.setUsername(req.getUsername()); // <-- username zorunlu
+        u.setUsername(req.getUsername());
         u.setEmail(req.getEmail());
         u.setPassword(encoder.encode(req.getPassword()));
         u = repo.save(u);
@@ -43,28 +43,25 @@ public class AuthService {
     }
 
     public AuthResponse login(LoginRequest req) {
-        // Email + password üzerinden doğrulama
         authManager.authenticate(new UsernamePasswordAuthenticationToken(req.getEmail(), req.getPassword()));
 
         User u = repo.findByEmail(req.getEmail())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Geçersiz kimlik bilgileri"));
 
         return toAuthResponse(u);
     }
 
-    /** (Opsiyonel) Username ile login desteği */
     public AuthResponse loginWithUsername(String username, String rawPassword) {
         User u = repo.findByUsername(username)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Geçersiz kimlik bilgileri"));
 
-        // AuthenticationManager tipik olarak username=email beklediğinden mail ile doğrulatıyoruz
         authManager.authenticate(new UsernamePasswordAuthenticationToken(u.getEmail(), rawPassword));
         return toAuthResponse(u);
     }
 
     public User me(Long id) {
         return repo.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Kullanıcı bulunamadı"));
     }
 
     private AuthResponse toAuthResponse(User u) {

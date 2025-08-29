@@ -1,4 +1,3 @@
-// src/main/java/com/ekomobil/service/UserService.java
 package com.ekomobil.service;
 
 import com.ekomobil.domain.dto.*;
@@ -22,47 +21,43 @@ public class UserService {
 
     public UserDto me(Long userId) {
         User u = repo.findById(userId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Kullanıcı bulunamadı"));
         return toDto(u);
     }
 
     @Transactional
     public UserDto updateMe(Long userId, UpdateProfileRequest req) {
         User u = repo.findById(userId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Kullanıcı bulunamadı"));
 
-        // username çakışma kontrolü (kendin dışında biri kullanıyorsa 409)
         repo.findByUsername(req.username()).ifPresent(other -> {
             if (!other.getId().equals(userId)) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT, "Username is already taken");
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "Kullanıcı adı zaten kullanılıyor.");
             }
         });
 
-        // email çakışma kontrolü (kendin dışında biri kullanıyorsa 409)
         repo.findByEmail(req.email()).ifPresent(other -> {
             if (!other.getId().equals(userId)) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT, "Email is already taken");
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "Email zaten kullanılıyor");
             }
         });
 
         u.setName(req.name());
         u.setUsername(req.username());
         u.setEmail(req.email());
-        // updatedAt alanın @UpdateTimestamp ile otomatik güncellenir
 
-        return toDto(u); // flush ile güncel döner
+        return toDto(u);
     }
 
     @Transactional
     public void changePassword(Long userId, ChangePasswordRequest req) {
         User u = repo.findById(userId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Kullanıcı bulunamadı"));
 
         if (!encoder.matches(req.currentPassword(), u.getPassword())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Current password is incorrect");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Mevcut şifre yanlış");
         }
         u.setPassword(encoder.encode(req.newPassword()));
-        // 204/200 dönecek, body yok
     }
 
     private static UserDto toDto(User u) {

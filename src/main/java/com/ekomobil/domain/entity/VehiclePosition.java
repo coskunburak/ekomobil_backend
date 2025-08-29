@@ -8,7 +8,8 @@ import java.time.OffsetDateTime;
 
 @Entity @Table(name="vehicle_position")
 @Getter @Setter
-public class VehiclePosition {
+public class VehiclePosition
+{
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
@@ -18,13 +19,12 @@ public class VehiclePosition {
 
     @Column(nullable=false) private double lat;
     @Column(nullable=false) private double lon;
-    private Double speed;   // km/h
-    private Double heading; // 0..360
+    private Double speed;
+    private Double heading;
 
     @Column(nullable=false)
     private OffsetDateTime ts;
 
     @Column(name="created_at", nullable=false)
     private OffsetDateTime createdAt = OffsetDateTime.now();
-    // getters/setters
 }

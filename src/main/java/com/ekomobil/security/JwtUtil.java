@@ -25,9 +25,8 @@ public class JwtUtil {
     public String generate(Long userId, String email) {
         long now = System.currentTimeMillis();
         return Jwts.builder()
-                .setSubject(String.valueOf(userId))      // userId
-                .claim("email", email)                   // email
-                // .claim("uid", userId)                 // (opsiyonel) ek claim
+                .setSubject(String.valueOf(userId))
+                .claim("email", email)
                 .setIssuedAt(new Date(now))
                 .setExpiration(new Date(now + expiresMs))
                 .signWith(key, SignatureAlgorithm.HS256)

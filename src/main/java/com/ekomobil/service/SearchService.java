@@ -19,7 +19,7 @@ public class SearchService {
 
     public List<SearchItemDto> search(String q, int limit) {
         final String query = q == null ? "" : q.trim();
-        final int lim = Math.max(1, Math.min(limit, 50)); // 1..50
+        final int lim = Math.max(1, Math.min(limit, 50));
         final var page = PageRequest.of(0, lim);
 
         List<SearchItemDto> out = new ArrayList<>();

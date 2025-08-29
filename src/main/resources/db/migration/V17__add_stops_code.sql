@@ -1,0 +1,4 @@
+ALTER TABLE stops
+  ADD COLUMN IF NOT EXISTS code VARCHAR(32);
+
+CREATE INDEX IF NOT EXISTS idx_stops_code ON stops(code);

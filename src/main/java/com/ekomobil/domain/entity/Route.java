@@ -28,4 +28,7 @@ public class Route
 
     @Column(length = 16)
     private String color;
+
+    @Column(columnDefinition = "TEXT")
+    private String polyline;
 }

@@ -42,7 +42,7 @@ public class BusService {
 
         if (req.routeId() != null) {
             Route r = routeRepo.findById(req.routeId())
-                    .orElseThrow(() -> new NotFoundException("Route not found: " + req.routeId()));
+                    .orElseThrow(() -> new NotFoundException("Rota bulunamadı: " + req.routeId()));
             b.setRoute(r);
         }
 
@@ -53,7 +53,7 @@ public class BusService {
     @Transactional
     public BusDto update(Long id, BusDto dto) {
         Bus b = busRepo.findById(id)
-                .orElseThrow(() -> new NotFoundException("Bus not found: " + id));
+                .orElseThrow(() -> new NotFoundException("Otobüs bulunamadı: " + id));
 
         b.setCode(dto.code());
         b.setPlate(dto.plate());
@@ -61,7 +61,7 @@ public class BusService {
 
         if (dto.routeId() != null) {
             Route r = routeRepo.findById(dto.routeId())
-                    .orElseThrow(() -> new NotFoundException("Route not found: " + dto.routeId()));
+                    .orElseThrow(() -> new NotFoundException("Rota bulunamadı: " + dto.routeId()));
             b.setRoute(r);
         } else {
             b.setRoute(null);
@@ -74,7 +74,7 @@ public class BusService {
     @Transactional
     public void delete(Long id) {
         Bus b = busRepo.findById(id)
-                .orElseThrow(() -> new NotFoundException("Bus not found: " + id));
+                .orElseThrow(() -> new NotFoundException("Otobüs bulunamadı: " + id));
         busRepo.delete(b);
     }
 

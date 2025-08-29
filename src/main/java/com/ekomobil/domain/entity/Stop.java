@@ -25,4 +25,8 @@ public class Stop {
     @Column(length=500)
     private String description;
 
+    @Column(length = 32, unique = true)
+    private String code;
+
+
 }
