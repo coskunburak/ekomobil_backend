@@ -1,12 +1,17 @@
 package com.ekomobil.domain.entity;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.ConstructorResult;
 import jakarta.persistence.Embeddable;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.Serializable;
 import java.util.Objects;
 
+
 @Embeddable
+@Getter @Setter
 public class RouteStopId implements Serializable {
 
     @Column(name = "route_id")
@@ -20,12 +25,6 @@ public class RouteStopId implements Serializable {
         this.routeId = routeId;
         this.stopId = stopId;
     }
-
-    public Long getRouteId() { return routeId; }
-    public void setRouteId(Long routeId) { this.routeId = routeId; }
-    public Long getStopId() { return stopId; }
-    public void setStopId(Long stopId) { this.stopId = stopId; }
-
     @Override public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof RouteStopId that)) return false;

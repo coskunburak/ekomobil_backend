@@ -36,10 +36,7 @@ public class AuthController {
         return ResponseEntity.ok(service.login(req));
     }
 
-    /**
-     * Kimlik doğrulama bilgisi SecurityContext'ten okunur.
-     * Header zorunlu değildir; token yoksa authenticated:false döner.
-     */
+
     @GetMapping("/me")
     public Map<String, Object> me(Authentication auth) {
         if (auth == null) {
