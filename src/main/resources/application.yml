@@ -6,7 +6,9 @@ app:
   jwt:
     secret: "kK8+o4bq2R9fE5Yw3L1zQ7TnU2hV6mB9sP0rX4cZ8aD1wJ3lN5uG7yK0qR2tV4"
     expiresInMinutes: 10080
-
+security:
+  dev-auth:
+    enabled: true
 spring:
   application:
     name: ekomobil
@@ -37,6 +39,7 @@ springdoc:
   api-docs:
     path: /v3/api-docs
   swagger-ui:
+    persist-authorization: true
     path: /swagger-ui
     tags-sorter: alpha
     operations-sorter: method
