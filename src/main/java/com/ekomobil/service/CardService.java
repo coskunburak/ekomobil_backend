@@ -174,7 +174,6 @@ public class CardService {
 
         c.setBalanceCents(Math.addExact(c.getBalanceCents(), req.getAmountCents()));
         cardRepo.save(c);
-
         txRepo.save(CardTransaction.builder()
                 .card(c)
                 .type(CardTransaction.TxType.TOPUP)

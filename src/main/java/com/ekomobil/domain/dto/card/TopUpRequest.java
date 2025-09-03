@@ -6,6 +6,6 @@ import lombok.Setter;
 @Getter @Setter
 public class TopUpRequest
 {
-    private long AmountCents;
+    private long amountCents;
     private String note;
 }

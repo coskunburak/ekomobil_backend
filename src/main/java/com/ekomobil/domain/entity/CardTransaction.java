@@ -22,7 +22,7 @@ public class CardTransaction {
     private TxType type;
 
     @Column(name = "amount_cents", nullable = false)
-    private long amountCents; // always positive
+    private long amountCents;
 
     @Column(name = "balance_after", nullable = false)
     private long balanceAfter;
@@ -30,8 +30,14 @@ public class CardTransaction {
     @Column(name = "note")
     private String note;
 
+    @Builder.Default
     @Column(name = "created_at", nullable = false)
     private Instant createdAt = Instant.now();
+
+    @PrePersist
+    void onCreate() {
+        if (createdAt == null) createdAt = Instant.now();
+    }
 
     public enum TxType { TOPUP, CHARGE, TRANSFER_OUT, TRANSFER_IN, REFUND }
 }
