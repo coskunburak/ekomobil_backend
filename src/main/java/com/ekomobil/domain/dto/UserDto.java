@@ -1,6 +1,7 @@
 package com.ekomobil.domain.dto;
 
 import java.time.Instant;
+import java.util.List;
 
 public record UserDto(
         Long id,
@@ -8,5 +9,7 @@ public record UserDto(
         String username,
         String email,
         Instant createdAt,
-        Instant updatedAt
+        Instant updatedAt,
+        boolean enabled,
+        List<String> roles
 ) {}

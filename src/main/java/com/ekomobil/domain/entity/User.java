@@ -37,4 +37,13 @@ public class User {
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "user_roles",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id"))
+    private java.util.Set<Role> roles = new java.util.HashSet<>();
+
+    @Column(name = "enabled", nullable = false)
+    private boolean enabled = true;
 }

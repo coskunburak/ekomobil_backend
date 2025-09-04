@@ -52,7 +52,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/search", "/api/v1/search/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/map/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/telemetry").authenticated()
+                        .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/telemetry").hasRole("DEVICE")
                         .requestMatchers("/api/v1/**").authenticated()
                         .anyRequest().permitAll()
                 )
@@ -127,24 +128,24 @@ public class SecurityConfig {
         private final UserRepository userRepo;
         private final boolean enabled;
         DevUserAuthFilter(UserRepository userRepo, boolean enabled) {
-            this.userRepo = userRepo;
-            this.enabled = enabled;
+            this.userRepo = userRepo; this.enabled = enabled;
         }
-
         @Override
         protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
                 throws ServletException, IOException {
+
             if (enabled && SecurityContextHolder.getContext().getAuthentication() == null) {
                 String uidHeader = request.getHeader("X-Debug-UserId");
                 if (uidHeader != null && !uidHeader.isBlank()) {
                     try {
                         Long uid = Long.parseLong(uidHeader.trim());
-                        // Kullanıcı var mı kontrol edelim; yoksa auth vermeyelim:
                         userRepo.findById(uid).ifPresent(u -> {
-                            Authentication auth = new AbstractAuthenticationToken(
-                                    List.of(new SimpleGrantedAuthority("ROLE_USER"))) {
+                            var authorities = u.getRoles().stream()
+                                    .map(r -> new SimpleGrantedAuthority("ROLE_" + r.getName()))
+                                    .toList();
+                            Authentication auth = new AbstractAuthenticationToken(authorities) {
                                 @Override public Object getCredentials() { return "N/A"; }
-                                @Override public Object getPrincipal() { return uid; } // principal = userId
+                                @Override public Object getPrincipal() { return uid; }
                             };
                             ((AbstractAuthenticationToken) auth).setAuthenticated(true);
                             request.setAttribute("uid", uid);
@@ -156,4 +157,5 @@ public class SecurityConfig {
             chain.doFilter(request, response);
         }
     }
+
 }

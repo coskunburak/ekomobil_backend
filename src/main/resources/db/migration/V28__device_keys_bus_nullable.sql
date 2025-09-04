@@ -1,0 +1,1 @@
+ALTER TABLE device_keys ALTER COLUMN bus_id DROP NOT NULL;
