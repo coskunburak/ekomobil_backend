@@ -85,16 +85,20 @@ public class AdminUserController {
         userRepo.save(u);
     }
 
-    @PostMapping("/{id}/roles")
+    @PostMapping("/{userId}/roles")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Transactional
-    public void updateUserRoles(@PathVariable Long id, @RequestBody @Valid List<String> roles) {
-        final var u = userRepo.findById(id).orElseThrow(() ->
+    public void updateUserRoles(
+            @PathVariable Long userId,
+            @RequestBody @Valid List<String> roles
+    ) {
+        var u = userRepo.findById(userId).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND, "Kullanıcı bulunamadı"));
 
         final Set<String> safeRoles = (roles == null) ? Set.of() : new HashSet<>(roles);
+
         final Set<Role> roleEntities = safeRoles.stream()
-                .map(name -> roleRepo.findByName(name)
+                .map(name -> roleRepo.findByNameIgnoreCase(name)
                         .orElseThrow(() -> new ResponseStatusException(
                                 HttpStatus.BAD_REQUEST, "Geçersiz rol: " + name)))
                 .collect(Collectors.toSet());

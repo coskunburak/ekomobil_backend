@@ -30,40 +30,11 @@ public class AdminRoleController {
     private final UserRepository userRepo;
     private final RoleRepository roleRepo;
 
-    /**
-     * Rolleri sadece isim listesi olarak döndür.
-     * İstersek RoleDto ile id+name de döndürebiliriz.
-     */
     @GetMapping("/roles")
     public List<String> listRoles() {
         return roleRepo.findAll().stream()
                 .map(r -> r.getName())
                 .sorted(Comparator.nullsLast(String::compareToIgnoreCase))
                 .toList();
-    }
-
-    /**
-     * Bir kullanıcının rollerini TAM SET olarak günceller.
-     * Body: ["ADMIN","USER"] gibi.
-     * 204 (No Content) döner.
-     */
-    @PostMapping("/users/{userId}/roles")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    @Transactional
-    public void updateUserRoles(
-            @PathVariable Long userId,
-            @RequestBody @Valid @NotEmpty(message = "roles boş olamaz") List<String> roles
-    ) {
-        final User user = userRepo.findById(userId).orElseThrow(() ->
-                new ResponseStatusException(HttpStatus.NOT_FOUND, "Kullanıcı bulunamadı"));
-
-        final Set<Role> entities = roles.stream()
-                .map(name -> roleRepo.findByNameIgnoreCase(name)
-                        .orElseThrow(() -> new ResponseStatusException(
-                                HttpStatus.BAD_REQUEST, "Geçersiz rol: " + name)))
-                .collect(Collectors.toSet());
-
-        user.setRoles(entities);
-        userRepo.save(user);
     }
 }
