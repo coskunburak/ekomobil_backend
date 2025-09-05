@@ -1,4 +1,3 @@
-// src/main/java/com/ekomobil/service/UserService.java
 package com.ekomobil.service;
 
 import com.ekomobil.domain.dto.UpdateProfileRequest;
@@ -24,8 +23,6 @@ public class UserService {
         this.userRepository = userRepository;
         this.encoder = encoder;
     }
-
-    // ─────────────────────────────────────────────────────────────────────────────
 
     @Transactional(readOnly = true)
     public UserDto me(Long userId) {
@@ -59,8 +56,6 @@ public class UserService {
         userRepository.save(u);
     }
 
-    // ─────────────────────────────────────────────────────────────────────────────
-    // TEK MAPPER: Entity -> DTO (rolleri güvenli map'ler)
     private UserDto toDto(User u) {
         List<String> roles = (u.getRoles() == null)
                 ? List.of()

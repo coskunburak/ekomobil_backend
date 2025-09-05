@@ -41,8 +41,8 @@ public class CustomUserDetailsService implements UserDetailsService {
             return List.of(new SimpleGrantedAuthority("ROLE_USER"));
         }
         return roles.stream()
-                .map(Role::getName)                   // "ADMIN","USER","DEVICE"
-                .map(r -> "ROLE_" + r)                // "ROLE_ADMIN"...
+                .map(Role::getName)
+                .map(r -> "ROLE_" + r)
                 .map(SimpleGrantedAuthority::new)
                 .collect(Collectors.toSet());
     }

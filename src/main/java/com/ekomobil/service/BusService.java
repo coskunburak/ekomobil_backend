@@ -3,10 +3,8 @@ package com.ekomobil.service;
 
 import com.ekomobil.domain.dto.BusDto;
 import com.ekomobil.domain.dto.CreateBusRequest;
-import com.ekomobil.domain.dto.StopDto;
 import com.ekomobil.domain.entity.Bus;
 import com.ekomobil.domain.entity.Route;
-import com.ekomobil.domain.entity.Stop;
 import com.ekomobil.error.NotFoundException;
 import com.ekomobil.repo.BusRepository;
 import com.ekomobil.repo.RouteRepository;

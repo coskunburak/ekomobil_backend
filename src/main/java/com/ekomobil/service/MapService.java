@@ -3,7 +3,6 @@ package com.ekomobil.service;
 import com.ekomobil.domain.dto.map.LineDto;
 import com.ekomobil.domain.dto.map.StopDto;
 import com.ekomobil.domain.entity.Route;
-import com.ekomobil.domain.entity.RouteStop;
 import com.ekomobil.domain.entity.Stop;
 import com.ekomobil.repo.RouteRepository;
 import com.ekomobil.repo.RouteStopRepository;

@@ -1,9 +1,9 @@
 package com.ekomobil.config;
 
 import com.ekomobil.repo.DeviceKeyRepository;
-import com.ekomobil.repo.UserRepository; // <-- EKLE
+import com.ekomobil.repo.UserRepository;
 import com.ekomobil.security.JwtAuthenticationFilter;
-import org.springframework.beans.factory.annotation.Value; // <-- EKLE
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;

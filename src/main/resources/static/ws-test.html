@@ -23,7 +23,6 @@
         log('Connected');
         document.getElementById('send').disabled = false;
 
-        // Sunucunun @SendTo("/topic/pong") ile yayınladığı kanal
         stompClient.subscribe('/topic/pong', (message) => {
           log('Received: ' + message.body);
         });
@@ -31,8 +30,7 @@
     };
 
     document.getElementById('send').onclick = () => {
-      // Sunucudaki @MessageMapping("/ping") eşleşmesi
-      stompClient.send('/app/ping', {}, 'hello');  // body zorunlu değil, örnek olarak "hello"
+      stompClient.send('/app/ping', {}, 'hello');
       log('Sent /app/ping');
     };
 </script>

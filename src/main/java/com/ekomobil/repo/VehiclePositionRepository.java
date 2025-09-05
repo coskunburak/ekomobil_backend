@@ -3,8 +3,6 @@ package com.ekomobil.repo;
 import com.ekomobil.domain.entity.VehiclePosition;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.time.OffsetDateTime;
-import java.util.List;
 import java.util.Optional;
 
 public interface VehiclePositionRepository extends JpaRepository<VehiclePosition, Long>

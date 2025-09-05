@@ -1,4 +1,3 @@
-// src/main/java/com/ekomobil/api/rest/publicapi/UserMeController.java
 package com.ekomobil.api.rest.publicapi;
 
 import com.ekomobil.domain.dto.*;

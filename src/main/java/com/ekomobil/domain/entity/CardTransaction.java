@@ -1,6 +1,5 @@
 package com.ekomobil.domain.entity;
 
-import com.ekomobil.domain.entity.Card;
 import jakarta.persistence.*;
 import lombok.*;
 

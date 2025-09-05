@@ -16,35 +16,20 @@ import org.springframework.transaction.annotation.Transactional;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
-/**
- * Rota polyline'ı boyunca durakların koordinatlarını otomatik yerleştirir.
- * - 1. tercih: Google Encoded Polyline (route.polyline)
- * - 2. tercih: Düz metin "lat,lon|lat,lon|..." veya noktalı virgül/whitespace ayracı
- * - 3. tercih: Mevcut non-zero duraklardan path inşa et
- *
- * Idempotent: overwrite=false && onlyZero=true ise yalnızca (0,0) olanları günceller.
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class RouteAutoPositionService {
 
-    private static final double EPS = 1e-6;                // lat/lon eşik
-    private static final double MERGE_TOL_METERS = 0.9;    // path'te 1m altı noktaları birleştir
+    private static final double EPS = 1e-6;
+    private static final double MERGE_TOL_METERS = 0.9;
     private static final DecimalFormat SIX = new DecimalFormat("0.000000");
 
     private final RouteRepository routeRepo;
     private final RouteStopRepository routeStopRepo;
     private final StopRepository stopRepo;
 
-    /**
-     * @param routeId        rota id
-     * @param spacingMeters  >0 ise hedef aralık. Total uzunluk kısa ise eşit dağıtıma düşer.
-     * @param overwrite      true ise mevcut lat/lon'ları da ez
-     * @param onlyZero       true ise sadece (0,0) olanlara yaz (overwrite=false iken varsayılan)
-     */
     @Transactional
     public RouteAutoPositionController.AutoPositionResult
     autoposition(long routeId, int spacingMeters, boolean overwrite, boolean onlyZero) {
@@ -53,13 +38,11 @@ public class RouteAutoPositionService {
         Route route = routeRepo.findById(routeId)
                 .orElseThrow(() -> new NotFoundException("Rota bulunamadı: " + routeId));
 
-        // Path üret (polyline -> ham text -> non-zero duraklar)
         List<double[]> path = safeBuildPath(route);
         if (path.size() < 2) {
             throw new IllegalStateException("Yol üretilemedi: en az 2 nokta gerekiyor (routeId=" + routeId + ")");
         }
 
-        // Kümülatif mesafe hesapla
         double[] segLen = new double[path.size() - 1];
         double[] pref = new double[path.size()];
         double total = 0;
@@ -69,31 +52,27 @@ public class RouteAutoPositionService {
             pref[i + 1] = total;
         }
 
-        // Rota durakları
         List<RouteStop> ordered = routeStopRepo.findByRouteIdOrderByOrderNo(routeId);
         int n = ordered.size();
         if (n == 0) {
             return new RouteAutoPositionController.AutoPositionResult(routeId, 0, 0, 0);
         }
 
-        // Hedef mesafeler: eşit dağıtım veya spacingMeters (kısa rotada eşit dağıtıma düşer)
         double[] targets = new double[n];
         if (n == 1) {
             targets[0] = total / 2.0;
-        } else if (spacingMeters > 1 && total >= (n - 1) * 2.0 /* çok kısa değilse */) {
-            double step = Math.min(spacingMeters, total / (n - 1.0)); // tüm rotaya yay
+        } else if (spacingMeters > 1 && total >= (n - 1) * 2.0 ) {
+            double step = Math.min(spacingMeters, total / (n - 1.0));
             for (int i = 0; i < n; i++) {
                 double t = i * step;
                 if (t > total) t = total;
                 targets[i] = t;
             }
         } else {
-            // default: eşit dağıt
             double step = total / (n - 1.0);
             for (int i = 0; i < n; i++) targets[i] = i * step;
         }
 
-        // Yazma
         int updated = 0, skipped = 0;
         for (int i = 0; i < n; i++) {
             Stop s = ordered.get(i).getStop();
@@ -110,7 +89,6 @@ public class RouteAutoPositionService {
             double lat = round6(pos[0]);
             double lon = round6(pos[1]);
 
-            // aynı ise yazma
             if (!zeroish && s.getLat() != null && s.getLon() != null
                     && Math.abs(s.getLat() - lat) < EPS && Math.abs(s.getLon() - lon) < EPS) {
                 skipped++; continue;
@@ -129,12 +107,10 @@ public class RouteAutoPositionService {
         return new RouteAutoPositionController.AutoPositionResult(routeId, n, updated, skipped);
     }
 
-    /* ---------- PATH OLUŞTURMA (robust) ---------- */
 
     private List<double[]> safeBuildPath(Route route) {
         String pl = route.getPolyline();
 
-        // a) Google Encoded Polyline
         if (pl != null && !pl.isBlank()) {
             try {
                 List<double[]> dec = Polyline.decode(pl.trim());
@@ -144,14 +120,12 @@ public class RouteAutoPositionService {
                 log.warn("Polyline decode başarısız (encoded varsayıldı): {}", ex.getMessage());
             }
 
-            // b) Ham metin "lat,lon|lat,lon|..." (| ; \n whitespace destekli)
             List<double[]> txt = tryParsePlainLatLonPath(pl);
             if (txt.size() >= 2) {
                 return dedupeClose(txt, MERGE_TOL_METERS);
             }
         }
 
-        // c) Non-zero duraklardan path
         List<RouteStop> ordered = routeStopRepo.findByRouteIdOrderByOrderNo(route.getId());
         List<double[]> fromStops = new ArrayList<>();
         for (RouteStop rs : ordered) {
@@ -169,14 +143,12 @@ public class RouteAutoPositionService {
         String s = raw.trim();
         if (s.isEmpty()) return pts;
 
-        // normalize
         s = s.replace(';', '|')
                 .replace('\n', '|')
                 .replace('\r', '|')
                 .replace('\t', ' ')
                 .replace(" ", "");
 
-        // also allow JSON-like: [lat,lon],[lat,lon]
         s = s.replace("[", "").replace("]", "");
 
         String[] pairs = s.split("\\|");
@@ -215,7 +187,6 @@ public class RouteAutoPositionService {
         return out;
     }
 
-    /* ---------- GEOMETRİ ---------- */
 
     private static double[] interpolateAlong(List<double[]> path, double[] pref, double target) {
         int last = pref.length - 1;
@@ -240,11 +211,9 @@ public class RouteAutoPositionService {
     }
 
     private static double round6(double v) {
-        // Locale bağımsız 6 ondalık
         synchronized (SIX) { return Double.parseDouble(SIX.format(v).replace(',', '.')); }
     }
 
-    /* ---------- UTIL ---------- */
 
     static final class Geo {
         static double haversineMeters(double lat1, double lon1, double lat2, double lon2) {
@@ -259,10 +228,6 @@ public class RouteAutoPositionService {
         }
     }
 
-    /**
-     * Google Encoded Polyline decoder – taşmalara karşı sağlamlaştırıldı.
-     * Malformed veride IllegalArgumentException fırlatır (catch edip fallback'e geçiyoruz).
-     */
     static final class Polyline {
         static List<double[]> decode(String poly) {
             List<double[]> pts = new ArrayList<>();
