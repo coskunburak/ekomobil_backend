@@ -1,23 +1,35 @@
 server:
+  address: 0.0.0.0
   port: 8080
   servlet:
     context-path: /
+  forward-headers-strategy: framework
+
 app:
   jwt:
     secret: "kK8+o4bq2R9fE5Yw3L1zQ7TnU2hV6mB9sP0rX4cZ8aD1wJ3lN5uG7yK0qR2tV4"
     expiresInMinutes: 10080
+  reset:
+    base-url: https://app.ekomobil.com/reset
+    ttl-minutes: 30
+  mail:
+    from: "Ekomobil <no-reply@ekomobil.com>"
+
 security:
   dev-auth:
     enabled: true
+
 spring:
   application:
     name: ekomobil
   jackson:
     default-property-inclusion: non_null
+
   datasource:
     url: jdbc:postgresql://localhost:5432/ekomobil
     username: burakcoskun
     password: brkcskn29
+
   jpa:
     hibernate:
       ddl-auto: validate
@@ -26,11 +38,39 @@ spring:
       hibernate.format_sql: true
       hibernate.jdbc.time_zone: UTC
 
+  web:
+    cors:
+      allowed-origin-patterns: >
+        http://localhost:*, http://127.0.0.1:*,
+        http://172.30.9.225:*, http://172.30.9.225
+      allowed-methods: "*"
+      allowed-headers: "*"
+      allow-credentials: true
+      max-age: 3600
+
+  mail:
+    host: ${SMTP_HOST:smtp.sendgrid.net}
+    port: ${SMTP_PORT:587}
+    username: ${SMTP_USERNAME:apikey}
+    password: ${SMTP_PASSWORD}
+    default-encoding: UTF-8
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+      mail.smtp.connectiontimeout: 5000
+      mail.smtp.timeout: 5000
+      mail.smtp.writetimeout: 5000
+      mail.smtp.from: no-reply@ekomobil.com
+    test-connection: false
+
 management:
   endpoints:
     web:
       exposure:
         include: health,info,metrics
+      cors:
+        allowed-origins: "*"
+        allowed-methods: "*"
   endpoint:
     health:
       show-details: when_authorized
@@ -44,3 +84,8 @@ springdoc:
     tags-sorter: alpha
     operations-sorter: method
   paths-to-match: /api/**
+
+logging:
+  level:
+    org.springframework.web: INFO
+    org.hibernate.SQL: INFO

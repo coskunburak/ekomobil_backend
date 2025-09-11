@@ -50,7 +50,7 @@ public class AuthService {
 
         return toAuthResponse(u);
     }
-
+    //bunu şimdilik kullanmayacağım login işlemi sadece  email üzerinden gerçekleşiyor.
     public AuthResponse loginWithUsername(String username, String rawPassword) {
         User u = repo.findByUsername(username)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Geçersiz kimlik bilgileri"));

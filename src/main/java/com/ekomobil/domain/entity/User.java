@@ -20,7 +20,7 @@ public class User {
     @Column(name = "name", nullable = false, length = 80)
     private String name;
 
-    @Column(name = "username", nullable = false, unique = true, length = 40) // <-- EKLE
+    @Column(name = "username", nullable = false, unique = true, length = 40)
     private String username;
 
     @Column(name = "email", nullable = false, unique = true, length = 255)

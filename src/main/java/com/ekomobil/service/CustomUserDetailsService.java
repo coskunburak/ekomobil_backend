@@ -1,8 +1,9 @@
-package com.ekomobil.security;
+package com.ekomobil.service;
 
 import com.ekomobil.domain.entity.Role;
 import com.ekomobil.domain.entity.User;
 import com.ekomobil.repo.UserRepository;
+import com.ekomobil.security.UserPrincipal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

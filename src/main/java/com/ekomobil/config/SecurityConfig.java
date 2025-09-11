@@ -3,36 +3,37 @@ package com.ekomobil.config;
 import com.ekomobil.repo.DeviceKeyRepository;
 import com.ekomobil.repo.UserRepository;
 import com.ekomobil.security.JwtAuthenticationFilter;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.authentication.AbstractAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
-
 import java.io.IOException;
 import java.util.List;
 
 @Configuration
 @EnableMethodSecurity
+@EnableAsync
 public class SecurityConfig {
 
     @Bean
@@ -48,17 +49,23 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/actuator/**", "/ws/**").permitAll()
+
                         .requestMatchers("/api/v1/auth/**").permitAll()
+
                         .requestMatchers(HttpMethod.GET, "/api/v1/search", "/api/v1/search/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/map/**").permitAll()
+
                         .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/v1/telemetry").hasRole("DEVICE")
+
                         .requestMatchers("/api/v1/**").authenticated()
+
                         .anyRequest().permitAll()
                 )
                 .addFilterBefore(deviceKeyAuthFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(devUserAuthFilter, UsernamePasswordAuthenticationFilter.class)    // <-- EKLE
+                .addFilterBefore(devUserAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
@@ -93,6 +100,7 @@ public class SecurityConfig {
 
     static class DeviceKeyAuthFilter extends OncePerRequestFilter {
         private final DeviceKeyRepository repo;
+
         DeviceKeyAuthFilter(DeviceKeyRepository repo) { this.repo = repo; }
 
         @Override
@@ -127,9 +135,11 @@ public class SecurityConfig {
     static class DevUserAuthFilter extends OncePerRequestFilter {
         private final UserRepository userRepo;
         private final boolean enabled;
+
         DevUserAuthFilter(UserRepository userRepo, boolean enabled) {
             this.userRepo = userRepo; this.enabled = enabled;
         }
+
         @Override
         protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
                 throws ServletException, IOException {
@@ -154,8 +164,8 @@ public class SecurityConfig {
                     } catch (NumberFormatException ignored) {}
                 }
             }
+
             chain.doFilter(request, response);
         }
     }
-
 }

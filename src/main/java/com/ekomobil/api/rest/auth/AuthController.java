@@ -1,12 +1,16 @@
 package com.ekomobil.api.rest.auth;
 
 import com.ekomobil.domain.dto.auth.AuthResponse;
+import com.ekomobil.domain.dto.auth.ForgotPasswordRequest;
 import com.ekomobil.domain.dto.auth.LoginRequest;
+import com.ekomobil.domain.dto.auth.ResetPasswordRequest;
 import com.ekomobil.domain.dto.auth.SignupRequest;
 import com.ekomobil.domain.entity.User;
 import com.ekomobil.security.JwtUtil;
 import com.ekomobil.service.AuthService;
+import com.ekomobil.service.PasswordResetService;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -21,9 +25,28 @@ public class AuthController {
 
     private final AuthService service;
     private final JwtUtil jwt;
+    private final PasswordResetService passwordResetService;
 
-    public AuthController(AuthService service, JwtUtil jwt) {
-        this.service = service; this.jwt = jwt;
+    public AuthController(AuthService service, JwtUtil jwt, PasswordResetService passwordResetService) {
+        this.service = service; this.jwt = jwt; this.passwordResetService = passwordResetService;
+    }
+
+    @Value("${security.dev-auth.enabled:false}")
+    private boolean devEnabled;
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Map<String, String>> forgot(@Valid @RequestBody ForgotPasswordRequest req){
+        String raw = passwordResetService.requestResetAndReturnRawIfDev(req.email(), devEnabled);
+        if (devEnabled && raw != null) {
+            return ResponseEntity.ok(Map.of("status", "ok", "debugRawToken", raw));
+        }
+        return ResponseEntity.ok(Map.of("status", "ok"));
+    }
+
+    @PostMapping("/password-reset")
+    public ResponseEntity<Map<String, String>> reset(@Valid @RequestBody ResetPasswordRequest req){
+        passwordResetService.resetPassword(req.token(), req.newPassword());
+        return ResponseEntity.ok(Map.of("status", "password-updated"));
     }
 
     @PostMapping("/signup")
@@ -35,7 +58,6 @@ public class AuthController {
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest req) {
         return ResponseEntity.ok(service.login(req));
     }
-
 
     @GetMapping("/me")
     public Map<String, Object> me(Authentication auth) {

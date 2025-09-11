@@ -1,5 +1,6 @@
 package com.ekomobil.security;
 
+import com.ekomobil.service.CustomUserDetailsService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
