@@ -45,4 +45,7 @@ public class User {
 
     @Column(name = "enabled", nullable = false)
     private boolean enabled = true;
+
+    @Column(name = "password_changed_at")
+    private Instant passwordChangedAt;
 }

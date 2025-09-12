@@ -5,6 +5,8 @@ import com.ekomobil.domain.dto.auth.ForgotPasswordRequest;
 import com.ekomobil.domain.dto.auth.LoginRequest;
 import com.ekomobil.domain.dto.auth.ResetPasswordRequest;
 import com.ekomobil.domain.dto.auth.SignupRequest;
+import com.ekomobil.domain.dto.auth.VerifyResetCodeRequest;
+import com.ekomobil.domain.dto.auth.VerifyResetCodeResponse;
 import com.ekomobil.domain.entity.User;
 import com.ekomobil.security.JwtUtil;
 import com.ekomobil.service.AuthService;
@@ -28,25 +30,44 @@ public class AuthController {
     private final PasswordResetService passwordResetService;
 
     public AuthController(AuthService service, JwtUtil jwt, PasswordResetService passwordResetService) {
-        this.service = service; this.jwt = jwt; this.passwordResetService = passwordResetService;
+        this.service = service;
+        this.jwt = jwt;
+        this.passwordResetService = passwordResetService;
     }
 
     @Value("${security.dev-auth.enabled:false}")
     private boolean devEnabled;
 
+    @Value("${app.reset.ttl-minutes:30}")
+    private int resetTtlMinutes;
+
     @PostMapping("/forgot-password")
-    public ResponseEntity<Map<String, String>> forgot(@Valid @RequestBody ForgotPasswordRequest req){
+    public ResponseEntity<Map<String, String>> forgot(@Valid @RequestBody ForgotPasswordRequest req) {
         String raw = passwordResetService.requestResetAndReturnRawIfDev(req.email(), devEnabled);
-        if (devEnabled && raw != null) {
-            return ResponseEntity.ok(Map.of("status", "ok", "debugRawToken", raw));
+
+        if (!devEnabled || raw == null) {
+            return ResponseEntity.ok(Map.of("status", "ok"));
         }
-        return ResponseEntity.ok(Map.of("status", "ok"));
+
+        return ResponseEntity.ok(Map.of("status", "ok", "debugResetToken", raw));
+    }
+
+    @PostMapping("/verify-reset-code")
+    public ResponseEntity<VerifyResetCodeResponse> verify(@Valid @RequestBody VerifyResetCodeRequest req) {
+        String resetToken = passwordResetService.verifyOtpAndIssueToken(req.email(), req.code());
+        int expiresInSeconds = resetTtlMinutes * 60;
+        return ResponseEntity.ok(new VerifyResetCodeResponse(resetToken, expiresInSeconds));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Map<String, String>> resetNew(@Valid @RequestBody ResetPasswordRequest req) {
+        passwordResetService.resetPassword(req.token(), req.newPassword());
+        return ResponseEntity.ok(Map.of("status", "password-updated"));
     }
 
     @PostMapping("/password-reset")
-    public ResponseEntity<Map<String, String>> reset(@Valid @RequestBody ResetPasswordRequest req){
-        passwordResetService.resetPassword(req.token(), req.newPassword());
-        return ResponseEntity.ok(Map.of("status", "password-updated"));
+    public ResponseEntity<Map<String, String>> resetOld(@Valid @RequestBody ResetPasswordRequest req) {
+        return resetNew(req);
     }
 
     @PostMapping("/signup")

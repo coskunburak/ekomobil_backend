@@ -52,7 +52,15 @@ public class SecurityConfig {
 
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/actuator/**", "/ws/**").permitAll()
 
-                        .requestMatchers("/api/v1/auth/**").permitAll()
+                        .requestMatchers(HttpMethod.POST,
+                                "/api/v1/auth/login",
+                                "/api/v1/auth/signup",
+                                "/api/v1/auth/forgot-password",
+                                "/api/v1/auth/verify-reset-code",
+                                "/api/v1/auth/reset-password",
+                                "/api/v1/auth/password-reset"
+                        ).permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/auth/me/header").permitAll()
 
                         .requestMatchers(HttpMethod.GET, "/api/v1/search", "/api/v1/search/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/map/**").permitAll()
